@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implicit Association Test - Alcohol Abuse</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #stimulus {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #results {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Implicit Association Test: Alcohol Abuse</h1>
+    <p>Press the appropriate key as quickly and accurately as possible:</p>
+    <ul>
+        <li><b>Left Key (E)</b> for Negative Words or Alcohol Words</li>
+        <li><b>Right Key (I)</b> for Positive Words or Non-Alcohol Words</li>
+    </ul>
+    <div id="stimulus"></div>
+    <div id="results"></div>
+    <script>
+        // Word categories
+        const alcoholWords = ["Beer", "Wine", "Vodka", "Whiskey", "Rum"];
+        const nonAlcoholWords = ["Water", "Juice", "Milk", "Tea", "Coffee"];
+        const positiveWords = ["Happiness", "Love", "Joy", "Peace", "Success"];
+        const negativeWords = ["Failure", "Sadness", "Pain", "Guilt", "Loss"];
+
+        // Variables
+        let stimuli = [];
+        let currentStimulus = 0;
+        let startTime;
+        let results = [];
+
+        // Helper to shuffle an array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Prepare stimuli
+        function prepareStimuli() {
+            stimuli = [
+                ...alcoholWords.map(word => ({ word, category: "Alcohol" })),
+                ...nonAlcoholWords.map(word => ({ word, category: "Non-Alcohol" })),
+                ...positiveWords.map(word => ({ word, category: "Positive" })),
+                ...negativeWords.map(word => ({ word, category: "Negative" }))
+            ];
+            shuffle(stimuli);
+        }
+
+        // Show stimulus
+        function showStimulus() {
+            if (currentStimulus >= stimuli.length) {
+                endTest();
+                return;
+            }
+            const stimulus = stimuli[currentStimulus];
+            document.getElementById("stimulus").innerText = stimulus.word;
+            startTime = new Date().getTime();
+        }
+
+        // Record response
+        function recordResponse(responseKey) {
+            const stimulus = stimuli[currentStimulus];
+            const reactionTime = new Date().getTime() - startTime;
+            const isCorrect =
+                (stimulus.category === "Alcohol" && responseKey === "E") ||
+                (stimulus.category === "Non-Alcohol" && responseKey === "I") ||
+                (stimulus.category === "Negative" && responseKey === "E") ||
+                (stimulus.category === "Positive" && responseKey === "I");
+
+            results.push({
+                word: stimulus.word,
+                category: stimulus.category,
+                reactionTime,
+                isCorrect
+            });
+
+            currentStimulus++;
+            showStimulus();
+        }
+
+        // End test and display results
+        function endTest() {
+            document.getElementById("stimulus").innerText = "Test Complete!";
+            const correctResponses = results.filter(r => r.isCorrect).length;
+            const avgReactionTime = Math.round(
+                results.reduce((sum, r) => sum + r.reactionTime, 0) / results.length
+            );
+
+            document.getElementById("results").innerHTML = `
+                <p>Total Stimuli: ${results.length}</p>
+                <p>Correct Responses: ${correctResponses}</p>
+                <p>Average Reaction Time: ${avgReactionTime} ms</p>
+            `;
+            console.log(results); // Log results for further analysis
+        }
+
+        // Start the test
+        prepareStimuli();
+        showStimulus();
+
+        // Capture key presses
+        document.addEventListener("keydown", event => {
+            if (event.key === "E" || event.key === "I") {
+                recordResponse(event.key);
+            }
+        });
+    </script>
+</body>
+</html>
